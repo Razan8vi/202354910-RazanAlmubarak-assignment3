@@ -79,7 +79,7 @@ To reset the saved settings (theme, name, filters), open the browser DevTools â†
 | | Performance | Accessibility | Best Practices | SEO | Page weight | LCP (mobile) |
 |---|---|---|---|---|---|---|
 | Assignment 2 | 82 | 95 | 96 | 91 | 685 KB | 4.8 s |
-| **Assignment 3** | **100** | **100** | **96** | **100** | **91 KB** | **1.4 s** |
+| **Assignment 3** | **100** | **100** | **96** | **100** | **92 KB** | **1.4 s** |
 
 Measured with Lighthouse (mobile preset) on a local server. Details are in
 [`docs/technical-documentation.md`](docs/technical-documentation.md#7-performance).

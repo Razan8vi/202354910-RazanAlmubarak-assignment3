@@ -193,8 +193,8 @@ valid (e.g. an unknown category), `initProjects()` falls back to the default.
 | | Performance | Accessibility | Best Practices | SEO | Page weight | LCP |
 |---|---|---|---|---|---|---|
 | Assignment 2 (mobile) | 82 | 95 | 96 | 91 | 685 KB | 4.8 s |
-| Assignment 3 (mobile) | 100 | 100 | 96 | 100 | 91 KB | 1.4 s |
-| Assignment 3 (desktop) | 100 | 100 | 96 | 100 | 91 KB | 0.4 s |
+| Assignment 3 (mobile) | 100 | 100 | 96 | 100 | 92 KB | 1.4 s |
+| Assignment 3 (desktop) | 100 | 100 | 96 | 100 | 92 KB | 0.4 s |
 
 The remaining Best Practices point was a console message caused by the test
 machine having no access to external sites. Lighthouse also suggests
