@@ -1,91 +1,333 @@
+/* =========================================================
+   Razan Almubarak – Portfolio styles (Assignment 3)
 
+   Contents
+   1. Theme colors (CSS variables for dark and light mode)
+   2. Reset and base elements
+   3. Shared components (buttons, inputs, messages)
+   4. Header, navigation and theme toggle
+   5. Visitor name and greeting
+   6. Sections and show/hide toggle
+   7. Footer
+   8. Projects: filters, sorting and cards
+   9. GitHub repositories (API)
+   10. Contact form
+   11. Responsive and accessibility rules
+   ========================================================= */
+
+/* =========================================================
+   1. THEME COLORS
+   Every color is a variable, so switching theme only means
+   changing the data-theme attribute on <html>.
+   ========================================================= */
+:root,
+:root[data-theme="dark"] {
+    --bg: #14060F;
+    --surface: #1F0B1A;
+    --surface-raised: #240D1E;
+    --border: #35182C;
+    --border-strong: #3A1A30;
+    --text: #F5EDF2;
+    --text-soft: #D8C7D3;
+    --text-muted: #C9A9BE;
+    --text-faint: #A68BA0;
+    --accent: #E0217B;
+    --accent-dark: #7A1249;
+    --accent-2: #6C8CFF;
+    --accent-2-bg: rgba(61, 90, 254, 0.12);
+    --accent-2-border: rgba(61, 90, 254, 0.35);
+    --error: #FF6B8A;
+    --success: #4ADE80;
+    --hero-glow: rgba(224, 33, 123, 0.35);
+    --skeleton: #2E1428;
+    --skeleton-shine: #3D1C35;
+    color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+    --bg: #FBF5F8;
+    --surface: #FFFFFF;
+    --surface-raised: #FDF1F6;
+    --border: #EED9E4;
+    --border-strong: #E2C3D4;
+    --text: #2A0F21;
+    --text-soft: #4A2A3F;
+    --text-muted: #6E4D63;
+    --text-faint: #7D5D72;
+    --accent: #C2185B;
+    --accent-dark: #7A1249;
+    --accent-2: #3049D8;
+    --accent-2-bg: rgba(61, 90, 254, 0.08);
+    --accent-2-border: rgba(61, 90, 254, 0.30);
+    --error: #C62828;
+    --success: #1B7F3B;
+    --hero-glow: rgba(224, 33, 123, 0.16);
+    --skeleton: #F3E3EC;
+    --skeleton-shine: #FAF0F5;
+    color-scheme: light;
+}
+
+/* =========================================================
+   2. RESET AND BASE ELEMENTS
+   ========================================================= */
 * {
-
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Inter', Arial, Helvetica, sans-serif;
     line-height: 1.6;
-    color: #F5EDF2;
-    background-color: #14060F;
+    color: var(--text);
+    background-color: var(--bg);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3 {
     font-family: 'Tajawal', Arial, sans-serif;
 }
 
+a {
+    color: var(--accent);
+}
+
+/* Visible keyboard focus for every interactive element */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 2px;
+}
+
+/* Hide content visually but keep it for screen readers */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
 /* =========================================================
-   HEADER 
+   3. SHARED COMPONENTS
+   ========================================================= */
+
+/* Inputs, selects and text areas share one look */
+.field {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.field:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.field.input-error {
+    border-color: var(--error);
+}
+
+.field.input-valid {
+    border-color: var(--success);
+}
+
+/* Main call-to-action button (gradient pill) */
+.btn-primary {
+    padding: 12px 28px;
+    background-image: linear-gradient(90deg, var(--accent), var(--accent-dark));
+    color: #FFFFFF;
+    border: none;
+    border-radius: 999px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-image: linear-gradient(90deg, var(--accent-2), var(--accent));
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Small outlined pill button */
+.btn-pill {
+    padding: 8px 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.btn-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Text-only button that looks like a link */
+.link-button {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 14px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Error and success messages */
+.error-message {
+    color: var(--error);
+    font-size: 13px;
+    animation: fadeIn 0.3s ease;
+}
+
+.error-message:empty {
+    display: none;
+}
+
+.success-message {
+    color: var(--success);
+    font-weight: 600;
+    animation: fadeIn 0.4s ease;
+}
+
+/* Fade-in + small slide down (from Assignment 2) */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================================
+   4. HEADER, NAVIGATION AND THEME TOGGLE
    ========================================================= */
 .site-header {
-    position: relative;
-    background-color: #14060F;
-    
-    background-image: radial-gradient(circle at 50% 0%, rgba(224, 33, 123, 0.35), transparent 60%);
-    padding: 90px 5% 70px 5%;
+    background-color: var(--bg);
+    background-image: radial-gradient(circle at 50% 0%, var(--hero-glow), transparent 60%);
+    padding: 24px 5% 64px;
     text-align: center;
-    border-bottom: 1px solid #35182C;
+    border-bottom: 1px solid var(--border);
+}
+
+.top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 48px;
 }
 
 .site-nav {
-    position: absolute;
-    top: 24px;
-    right: 5%;
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 8px;
 }
 
 .site-nav a {
-    color: #F5EDF2;
+    color: var(--text);
     text-decoration: none;
     font-weight: 500;
     font-size: 14px;
     padding: 8px 16px;
-    border: 1px solid #3A1A30;
+    border: 1px solid var(--border-strong);
     border-radius: 999px;
-    background-color: #1F0B1A;
+    background-color: var(--surface);
 }
 
 .site-nav a:hover {
-    border-color: #E0217B;
-    color: #E0217B;
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 .hero-inner h1 {
     font-size: 56px;
     font-weight: 800;
     letter-spacing: 1px;
-    color: #F5EDF2;
+    line-height: 1.2;
 }
 
 .tagline {
-    color: #C9A9BE;
+    color: var(--text-muted);
     font-size: 18px;
     margin-top: 10px;
 }
 
-#greeting {
+/* =========================================================
+   5. VISITOR NAME AND GREETING
+   ========================================================= */
+.greeting {
     display: inline-block;
     margin-top: 18px;
     font-weight: 600;
-    color: #6C8CFF;
-    background-color: rgba(61, 90, 254, 0.12);
-    border: 1px solid rgba(61, 90, 254, 0.35);
+    font-size: 14px;
+    color: var(--accent-2);
+    background-color: var(--accent-2-bg);
+    border: 1px solid var(--accent-2-border);
     padding: 6px 16px;
     border-radius: 999px;
-    font-size: 14px;
 }
-#greeting:empty {
+
+.greeting:empty {
     display: none;
 }
 
+.visitor-area {
+    margin-top: 14px;
+}
+
+.visitor-form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.visitor-form label {
+    width: 100%;
+    color: var(--text-soft);
+    font-size: 14px;
+}
+
+.visitor-form .field {
+    width: 220px;
+}
+
+.visitor-form .error-message {
+    width: 100%;
+}
+
 /* =========================================================
-   SECTIONS 
-   
+   6. SECTIONS AND SHOW/HIDE TOGGLE
    ========================================================= */
 main {
     padding: 0 5%;
@@ -95,43 +337,51 @@ main {
     max-width: 900px;
     margin: 60px auto;
     padding: 32px;
-    background-color: #1F0B1A;
-    border: 1px solid #35182C;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 12px;
+    scroll-margin-top: 20px;
 }
 
-.section h2 {
-    font-size: 26px;
-    font-weight: 700;
-    color: #F5EDF2;
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 2px solid #35182C;
+    border-bottom: 2px solid var(--border);
 }
 
-.about-content {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 28px;
+.section-header h2 {
+    font-size: 26px;
+    font-weight: 700;
 }
 
-.profile-img {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 3px solid #E0217B;
-    box-shadow: 0 0 0 6px rgba(224, 33, 123, 0.15);
+.section-intro {
+    color: var(--text-muted);
+    margin-bottom: 20px;
 }
 
 .about-content p {
-    flex: 1;
-    min-width: 250px;
-    color: #D8C7D3;
+    color: var(--text-soft);
 }
 
+/* =========================================================
+   7. FOOTER
+   ========================================================= */
+.site-footer {
+    text-align: center;
+    padding: 24px;
+    background-color: var(--bg);
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 14px;
+}
+
+/* =========================================================
+   Projects and contact form (from Assignment 2)
+   ========================================================= */
 .projects-list {
     display: flex;
     flex-wrap: wrap;
@@ -142,15 +392,11 @@ main {
 .project-card {
     flex: 1 1 45%;
     min-width: 250px;
-    background-color: #240D1E;
-    border: 1px solid #3A1A30;
-    border-left: 4px solid #E0217B;
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-left: 4px solid var(--accent);
     border-radius: 8px;
     padding: 18px;
-}
-
-.project-card:hover {
-    border-left-color: #6C8CFF;
 }
 
 .project-img {
@@ -160,15 +406,25 @@ main {
     margin-bottom: 12px;
 }
 
-.project-card h3 {
-    color: #F5EDF2;
-    font-size: 18px;
-    margin-bottom: 8px;
+.project-card p {
+    color: var(--text-muted);
+    font-size: 15px;
 }
 
-.project-card p {
-    color: #C9A9BE;
-    font-size: 15px;
+.project-search {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+.empty-message {
+    margin-top: 16px;
+    color: var(--text-muted);
+    text-align: center;
 }
 
 .contact-form {
@@ -178,115 +434,59 @@ main {
     max-width: 500px;
 }
 
-.contact-form label {
-    font-weight: 600;
-    color: #D8C7D3;
-    font-size: 14px;
-}
-
 .contact-form input,
 .contact-form textarea {
     padding: 12px;
-    border: 1px solid #3A1A30;
+    border: 1px solid var(--border-strong);
     border-radius: 6px;
-    background-color: #14060F;
-    color: #F5EDF2;
+    background-color: var(--bg);
+    color: var(--text);
     font-family: inherit;
-    font-size: 14px;
-}
-
-.contact-form input:focus,
-.contact-form textarea:focus {
-    outline: none;
-    border-color: #E0217B;
-}
-
-.contact-form button {
-    align-self: flex-start;
-    padding: 12px 28px;
-    background-image: linear-gradient(90deg, #E0217B, #7A1249);
-    color: #ffffff;
-    border: none;
-    border-radius: 999px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 6px;
-}
-
-.contact-form button:hover {
-    background-image: linear-gradient(90deg, #6C8CFF, #E0217B);
-}
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-.site-footer {
-    text-align: center;
-    padding: 24px;
-    background-color: #14060F;
-    border-top: 1px solid #35182C;
-    color: #8B7488;
-    font-size: 14px;
-}
-
-
-
-/* ===== Project search ===== */
-.project-search {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #3A1A30;
-    border-radius: 6px;
-    background-color: #14060F;
-    color: #F5EDF2;
-    font-family: inherit;
-    font-size: 14px;
-}
-
-.project-search:focus {
-    outline: none;
-    border-color: #E0217B;
-}
-
-.empty-message {
-    margin-top: 16px;
-    color: #C9A9BE;
-    text-align: center;
-}
-
-
-/* ===== Form validation messages ===== */
-.error-message {
-    color: #FF6B8A;
-    font-size: 13px;
-    margin-top: -6px;
-    animation: fadeIn 0.3s ease;
-}
-
-.error-message:empty {
-    display: none;
 }
 
 .contact-form input.input-error,
 .contact-form textarea.input-error {
-    border-color: #FF6B8A;
+    border-color: var(--error);
 }
 
 .form-message.success {
-    color: #4ADE80;
+    color: var(--success);
     font-weight: 600;
-    animation: fadeIn 0.4s ease;
 }
 
-/* Fade-in + small slide down */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-4px);
+/* =========================================================
+   RESPONSIVE AND ACCESSIBILITY RULES
+   (kept at the end so they override the rules above)
+   ========================================================= */
+@media (max-width: 600px) {
+    .top-bar {
+        justify-content: center;
+        margin-bottom: 32px;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    .hero-inner h1 {
+        font-size: 40px;
+    }
+
+    .section {
+        padding: 22px;
+    }
+
+    .section-header h2 {
+        font-size: 22px;
+    }
+}
+
+/* Respect visitors who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    html {
+        scroll-behavior: auto;
     }
 }
