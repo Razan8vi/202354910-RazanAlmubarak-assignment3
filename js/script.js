@@ -713,69 +713,234 @@ function initGitHub() {
 }
 
 /* =========================================================
-   Contact form (from Assignment 2)
+   9. CONTACT FORM VALIDATION
+   Steps:
+   1. Every field has its own rule (validators below).
+   2. A field shows its error only after the visitor has left it
+      once ("touched"), so nobody sees errors before typing.
+   3. The Send button stays disabled, with a hint listing what is
+      still missing, until every rule passes.
+   4. On submit, everything is checked again, then a short
+      "Sending…" step runs and a confirmation is shown.
+   No backend is connected, so the message is not really sent.
    ========================================================= */
-// ===== Contact form validation =====
+const MESSAGE_MIN = 10;
+const MESSAGE_MAX = 500;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 const contactForm = document.getElementById("contact-form");
 const nameInput = document.getElementById("name");
 const emailInput = document.getElementById("email");
+const reasonSelect = document.getElementById("reason");
+const reasonNote = document.getElementById("reason-note");
+const projectLinkGroup = document.getElementById("project-link-group");
+const projectLinkInput = document.getElementById("project-link");
 const messageInput = document.getElementById("message");
+const charCount = document.getElementById("char-count");
+const submitButton = document.getElementById("submit-button");
+const formHint = document.getElementById("form-hint");
 const formMessage = document.getElementById("form-message");
 
-// Simple pattern: text@text.text
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const formFields = [nameInput, emailInput, reasonSelect, projectLinkInput, messageInput];
+const touchedFields = new Set();
 
-function showError(input, errorId, message) {
-    document.getElementById(errorId).textContent = message;
-    input.classList.add("input-error");
+// A different note depending on the reason the visitor chooses
+const REASONS = {
+    job: { label: "a job or internship", note: "Great! Please mention the role and the company in your message." },
+    collaboration: { label: "a project collaboration", note: "Sounds fun! You can add a link to the project below (optional)." },
+    feedback: { label: "feedback on my portfolio", note: "Thank you! Honest feedback helps me improve." },
+    hello: { label: "saying hi", note: "Hi! I would love to hear from you." }
+};
+
+function isValidUrl(text) {
+    try {
+        const url = new URL(text);
+        return url.protocol === "https:" || url.protocol === "http:";
+    } catch (error) {
+        return false;
+    }
 }
 
-function clearError(input, errorId) {
-    document.getElementById(errorId).textContent = "";
-    input.classList.remove("input-error");
+// Each rule returns an error message, or "" when the value is valid
+const validators = {
+    name(value) {
+        if (value === "") return "Please enter your name.";
+        if (value.length < 2) return "Your name should be at least 2 characters.";
+        if (!NAME_PATTERN.test(value)) return "Please use letters only in your name.";
+        return "";
+    },
+    email(value) {
+        if (value === "") return "Please enter your email.";
+        if (!EMAIL_PATTERN.test(value)) return "Please enter a valid email, like name@example.com.";
+        return "";
+    },
+    reason(value) {
+        return value === "" ? "Please choose a reason for your message." : "";
+    },
+    "project-link"(value) {
+        // Only checked when the field is shown and something was typed
+        if (reasonSelect.value !== "collaboration" || value === "") return "";
+        return isValidUrl(value) ? "" : "Please enter a full link that starts with https://";
+    },
+    message(value) {
+        if (value === "") return "Please write a message before sending.";
+        if (value.length < MESSAGE_MIN) return `Your message is too short (at least ${MESSAGE_MIN} characters).`;
+        if (value.length > MESSAGE_MAX) return `Your message is too long (at most ${MESSAGE_MAX} characters).`;
+        return "";
+    }
+};
+
+// Short names for the "still needed" hint
+const FIELD_HINTS = {
+    name: "your name",
+    email: "a valid email",
+    reason: "a reason",
+    "project-link": "a valid project link",
+    message: `a message of at least ${MESSAGE_MIN} characters`
+};
+
+function showFieldResult(input, errorText) {
+    document.getElementById(`${input.id}-error`).textContent = errorText;
+    input.classList.toggle("input-error", errorText !== "");
+    input.classList.toggle("input-valid", errorText === "" && input.value.trim() !== "");
+    input.setAttribute("aria-invalid", String(errorText !== ""));
 }
 
-contactForm.addEventListener("submit", function (event) {
+function clearFieldResult(input) {
+    document.getElementById(`${input.id}-error`).textContent = "";
+    input.classList.remove("input-error", "input-valid");
+    input.removeAttribute("aria-invalid");
+}
+
+// Check every field; returns the ids of the fields that are not valid yet
+function validateForm() {
+    const invalidFields = [];
+
+    formFields.forEach((input) => {
+        const errorText = validators[input.id](input.value.trim());
+
+        if (errorText) {
+            invalidFields.push(input.id);
+        }
+        if (touchedFields.has(input.id)) {
+            showFieldResult(input, errorText);
+        }
+    });
+
+    return invalidFields;
+}
+
+function updateFormState() {
+    const invalidFields = validateForm();
+    const isValid = invalidFields.length === 0;
+
+    submitButton.disabled = !isValid;
+    formHint.textContent = isValid
+        ? ""
+        : `To enable the Send button, add ${invalidFields.map((id) => FIELD_HINTS[id]).join(", ")}.`;
+}
+
+function updateCharCount() {
+    const length = messageInput.value.length;
+    charCount.textContent = `${length} / ${MESSAGE_MAX}`;
+    charCount.classList.toggle("near-limit", length > MESSAGE_MAX * 0.9);
+}
+
+function updateReasonSection() {
+    const reason = REASONS[reasonSelect.value];
+    const isCollaboration = reasonSelect.value === "collaboration";
+
+    reasonNote.textContent = reason ? reason.note : "";
+    projectLinkGroup.hidden = !isCollaboration;
+
+    // When the link field is hidden again, forget what was typed in it
+    if (!isCollaboration) {
+        projectLinkInput.value = "";
+        touchedFields.delete(projectLinkInput.id);
+        clearFieldResult(projectLinkInput);
+    }
+}
+
+function resetContactForm() {
+    contactForm.reset();
+    touchedFields.clear();
+    formFields.forEach(clearFieldResult);
+    updateReasonSection();
+    updateCharCount();
+    prefillVisitorName();
+    updateFormState();
+}
+
+// Use the saved visitor name to save the visitor some typing
+function prefillVisitorName() {
+    if (nameInput.value === "" && visitorState.name) {
+        nameInput.value = visitorState.name;
+    }
+}
+
+function handleContactSubmit(event) {
     event.preventDefault(); // stop the page from reloading
 
+    // Step 1: check everything again and show every error
+    formFields.forEach((input) => touchedFields.add(input.id));
+    updateFormState();
+
+    const firstInvalid = formFields.find((input) => input.classList.contains("input-error"));
+    if (firstInvalid) {
+        firstInvalid.focus();
+        return;
+    }
+
+    // Step 2: simulate sending (there is no backend)
     const name = nameInput.value.trim();
     const email = emailInput.value.trim();
-    const message = messageInput.value.trim();
-    let isValid = true;
+    const reasonLabel = REASONS[reasonSelect.value].label;
 
+    submitButton.disabled = true;
+    submitButton.textContent = "Sending…";
     formMessage.textContent = "";
-    formMessage.classList.remove("success");
 
-    if (name === "") {
-        showError(nameInput, "name-error", "Please enter your name.");
-        isValid = false;
-    } else {
-        clearError(nameInput, "name-error");
-    }
+    setTimeout(() => {
+        // Step 3: confirm and clear the form
+        submitButton.textContent = "Send Message";
+        resetContactForm();
+        formMessage.textContent = `Thank you, ${name}! Your message about ${reasonLabel} has been received. I will reply to ${email}.`;
+    }, 1000);
+}
 
-    if (email === "") {
-        showError(emailInput, "email-error", "Please enter your email.");
-        isValid = false;
-    } else if (!emailPattern.test(email)) {
-        showError(emailInput, "email-error", "Please enter a valid email, like name@example.com.");
-        isValid = false;
-    } else {
-        clearError(emailInput, "email-error");
-    }
+function initContactForm() {
+    formFields.forEach((input) => {
+        // Mark a field as touched when the visitor leaves it
+        input.addEventListener("blur", () => {
+            if (input.value.trim() !== "" || input === reasonSelect) {
+                touchedFields.add(input.id);
+            }
+            updateFormState();
+        });
 
-    if (message === "") {
-        showError(messageInput, "message-error", "Please write a message before sending.");
-        isValid = false;
-    } else {
-        clearError(messageInput, "message-error");
-    }
+        input.addEventListener("input", () => {
+            formMessage.textContent = "";
+            updateFormState();
+        });
+    });
 
-    if (isValid) {
-        formMessage.textContent = "Thank you, " + name + "! Your message has been received.";
-        formMessage.classList.add("success");
-        contactForm.reset();
-    }
-});
+    reasonSelect.addEventListener("change", () => {
+        touchedFields.add(reasonSelect.id);
+        updateReasonSection();
+        updateFormState();
+    });
+
+    messageInput.addEventListener("input", updateCharCount);
+    contactForm.addEventListener("submit", handleContactSubmit);
+
+    // Fill in the name again if the visitor saves a new one in the header
+    document.addEventListener("visitor:changed", () => {
+        prefillVisitorName();
+        updateFormState();
+    });
+
+    resetContactForm();
+}
 
 /* =========================================================
    11. START THE APP
@@ -786,3 +951,4 @@ initVisitor();
 initSectionToggles();
 initProjects();
 initGitHub();
+initContactForm();
