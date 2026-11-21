@@ -268,15 +268,238 @@ function initSectionToggles() {
 }
 
 /* =========================================================
-   11. START THE APP
-   The script is loaded with "defer", so the HTML is ready here.
+   7. PROJECTS: FILTER, LEVEL AND SORT
+   The projects are stored as data and drawn by JavaScript.
+   Every change runs the same pipeline:
+   category filter -> level filter -> search -> sort -> render
    ========================================================= */
-initTheme();
-initVisitor();
-initSectionToggles();
+const PROJECTS = [
+    {
+        title: "BYTO – Book Your Truck Online",
+        description: "A front-end project from my training at Tuwaiq Academy: a truck-booking app that supports Arabic and English. It gave me more experience in building structured screens and applying core development concepts to a practical use case.",
+        category: "mobile",
+        level: "intermediate",
+        date: "2025-08",
+        tags: ["Front-end", "Arabic / English", "Tuwaiq Academy"],
+        image: { src: "assets/images/byto-app.webp", alt: "BYTO app language selection screen", width: 640, height: 480 }
+    },
+    {
+        title: "Personal Portfolio Website",
+        description: "My first portfolio website (Assignment 1), built with HTML, CSS, and JavaScript. It includes an About Me section, project cards, a contact form, and a time-of-day greeting.",
+        category: "web",
+        level: "beginner",
+        date: "2026-09",
+        tags: ["HTML", "CSS", "JavaScript"],
+        image: { src: "assets/images/portfolio-a1.webp", alt: "Screenshot of my Assignment 1 portfolio website", width: 800, height: 450 },
+        link: "https://github.com/Razan8vi/202354910-razan-almubarak-assignment1"
+    },
+    {
+        title: "Interactive Portfolio",
+        description: "Assignment 2 made the portfolio interactive: a live project search, contact form validation with clear error messages, and animated feedback.",
+        category: "web",
+        level: "intermediate",
+        date: "2026-10",
+        tags: ["DOM events", "Form validation", "CSS animation"],
+        link: "https://github.com/Razan8vi/202354910-RazanAlmubarak-assignment2"
+    },
+    {
+        title: "Advanced Portfolio (this site)",
+        description: "Assignment 3 connects the portfolio to the GitHub REST API and adds project filtering and sorting, a saved light/dark theme, a remembered visitor name, and a time-on-site timer.",
+        category: "web",
+        level: "advanced",
+        date: "2026-11",
+        tags: ["REST API", "async / await", "localStorage"],
+        link: "https://github.com/Razan8vi/202354910-RazanAlmubarak-assignment3"
+    },
+    {
+        title: "KFUPM PeerLearn",
+        description: "A team software engineering project for a peer-tutoring platform for KFUPM students. We gathered and analyzed the requirements, then modeled them with UML use case diagrams and low-fidelity GUI mockups.",
+        category: "software-engineering",
+        level: "advanced",
+        date: "2026-04",
+        tags: ["Requirements", "UML", "Team project"]
+    }
+];
+
+const CATEGORY_LABELS = {
+    all: "All",
+    web: "Web",
+    mobile: "Mobile",
+    "software-engineering": "Software Engineering"
+};
+
+const LEVEL_LABELS = {
+    beginner: "Beginner",
+    intermediate: "Intermediate",
+    advanced: "Advanced"
+};
+
+// A different message for each level the visitor chooses
+const LEVEL_MESSAGES = {
+    all: "Pick a level to see projects that match what you are looking for.",
+    beginner: "Beginner projects: my first steps with HTML, CSS, and JavaScript.",
+    intermediate: "Intermediate projects: interactive features, validation, and real use cases.",
+    advanced: "Advanced projects: APIs, saved state, and team-based software engineering."
+};
+
+const DEFAULT_FILTERS = { category: "all", level: "all", sort: "newest" };
+
+const projectsList = document.getElementById("projects-list");
+const projectSearch = document.getElementById("project-search");
+const categoryButtons = document.querySelectorAll("[data-category]");
+const levelSelect = document.getElementById("level-select");
+const sortSelect = document.getElementById("sort-select");
+const resetFiltersButton = document.getElementById("reset-filters");
+const levelMessage = document.getElementById("level-message");
+const resultsCount = document.getElementById("results-count");
+const noProjectsMessage = document.getElementById("no-projects");
+
+// Saved choices + the search text (the search is not saved on purpose)
+const projectState = {
+    ...DEFAULT_FILTERS,
+    ...readStorage(localStorage, STORAGE_KEYS.projectFilters, {}),
+    search: ""
+};
+
+// "2026-10" -> "Oct 2026"
+function formatMonth(yearMonth) {
+    const [year, month] = yearMonth.split("-").map(Number);
+    return new Date(year, month - 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
+// Step 1–3: keep only the projects that pass every rule
+function filterProjects(projects, { category, level, search }) {
+    const searchText = search.toLowerCase();
+
+    return projects.filter((project) => {
+        const matchesCategory = category === "all" || project.category === category;
+        const matchesLevel = level === "all" || project.level === level;
+        const searchableText = [project.title, project.description, ...project.tags].join(" ").toLowerCase();
+        const matchesSearch = searchText === "" || searchableText.includes(searchText);
+
+        return matchesCategory && matchesLevel && matchesSearch;
+    });
+}
+
+// Step 4: sort a copy (never change the original array)
+function sortProjects(projects, sortBy) {
+    const sorted = [...projects];
+
+    if (sortBy === "newest") {
+        sorted.sort((a, b) => b.date.localeCompare(a.date));
+    } else if (sortBy === "oldest") {
+        sorted.sort((a, b) => a.date.localeCompare(b.date));
+    } else if (sortBy === "title") {
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return sorted;
+}
+
+function createProjectCard(project) {
+    const image = project.image
+        ? `<img src="${project.image.src}" alt="${escapeHTML(project.image.alt)}" class="project-img"
+                width="${project.image.width}" height="${project.image.height}" loading="lazy">`
+        : `<div class="project-img project-img-placeholder" aria-hidden="true">${escapeHTML(project.title.charAt(0))}</div>`;
+
+    const tags = project.tags.map((tag) => `<li>${escapeHTML(tag)}</li>`).join("");
+
+    const link = project.link
+        ? `<a class="project-link" href="${project.link}" target="_blank" rel="noopener">View code on GitHub<span class="visually-hidden"> (opens in a new tab)</span></a>`
+        : "";
+
+    return `
+        <li class="project-card">
+            ${image}
+            <div class="project-meta">
+                <span class="badge badge-${project.level}">${LEVEL_LABELS[project.level]}</span>
+                <span>${CATEGORY_LABELS[project.category]}</span>
+                <span aria-hidden="true">•</span>
+                <time datetime="${project.date}">${formatMonth(project.date)}</time>
+            </div>
+            <h3>${escapeHTML(project.title)}</h3>
+            <p>${escapeHTML(project.description)}</p>
+            <ul class="tag-list" aria-label="Technologies">${tags}</ul>
+            ${link}
+        </li>`;
+}
+
+// Builds a specific hint, e.g. "No advanced mobile projects match "abc"."
+function getEmptyMessage({ category, level, search }) {
+    const levelText = level === "all" ? "" : `${LEVEL_LABELS[level].toLowerCase()} `;
+    const categoryText = category === "all" ? "" : `${CATEGORY_LABELS[category]} `;
+    const searchText = search ? ` matching "${search}"` : "";
+
+    return `No ${levelText}${categoryText}projects${searchText} yet. Try another level or category, or reset the filters.`;
+}
+
+function renderProjects() {
+    const visibleProjects = sortProjects(filterProjects(PROJECTS, projectState), projectState.sort);
+
+    projectsList.innerHTML = visibleProjects.map(createProjectCard).join("");
+    resultsCount.textContent = `Showing ${visibleProjects.length} of ${PROJECTS.length} projects`;
+    levelMessage.textContent = LEVEL_MESSAGES[projectState.level];
+
+    noProjectsMessage.hidden = visibleProjects.length > 0;
+    noProjectsMessage.textContent = getEmptyMessage(projectState);
+
+    // Keep the controls in sync with the state
+    categoryButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.category === projectState.category));
+    });
+    levelSelect.value = projectState.level;
+    sortSelect.value = projectState.sort;
+
+    // The reset button only appears when something is different from the default
+    const isDefault = projectState.category === DEFAULT_FILTERS.category
+        && projectState.level === DEFAULT_FILTERS.level
+        && projectState.sort === DEFAULT_FILTERS.sort
+        && projectState.search === "";
+    resetFiltersButton.hidden = isDefault;
+}
+
+// Change part of the state, save the filters, and draw again
+function updateProjects(changes) {
+    Object.assign(projectState, changes);
+
+    const { category, level, sort } = projectState;
+    writeStorage(localStorage, STORAGE_KEYS.projectFilters, { category, level, sort });
+    renderProjects();
+}
+
+function initProjects() {
+    // Ignore saved values that are no longer valid (e.g. an old category)
+    if (!(projectState.category in CATEGORY_LABELS)) {
+        projectState.category = DEFAULT_FILTERS.category;
+    }
+    if (!(projectState.level in LEVEL_MESSAGES)) {
+        projectState.level = DEFAULT_FILTERS.level;
+    }
+    if (!["newest", "oldest", "title"].includes(projectState.sort)) {
+        projectState.sort = DEFAULT_FILTERS.sort;
+    }
+
+    categoryButtons.forEach((button) => {
+        button.addEventListener("click", () => updateProjects({ category: button.dataset.category }));
+    });
+
+    levelSelect.addEventListener("change", () => updateProjects({ level: levelSelect.value }));
+    sortSelect.addEventListener("change", () => updateProjects({ sort: sortSelect.value }));
+
+    // Wait 200 ms after the last key press instead of redrawing on every key
+    projectSearch.addEventListener("input", debounce(() => {
+        updateProjects({ search: projectSearch.value.trim() });
+    }, 200));
+
+    resetFiltersButton.addEventListener("click", () => {
+        projectSearch.value = "";
+        updateProjects({ ...DEFAULT_FILTERS, search: "" });
+    });
+
+    renderProjects();
+}
 
 /* =========================================================
-   Contact form and project search (from Assignment 2)
+   Contact form (from Assignment 2)
    ========================================================= */
 // ===== Contact form validation =====
 const contactForm = document.getElementById("contact-form");
@@ -340,26 +563,11 @@ contactForm.addEventListener("submit", function (event) {
     }
 });
 
-// ===== Project live search =====
-const searchInput = document.getElementById("project-search");
-const projectCards = document.querySelectorAll(".project-card");
-const noProjectsMessage = document.getElementById("no-projects");
-
-searchInput.addEventListener("input", function () {
-    const searchText = searchInput.value.toLowerCase().trim();
-    let visibleCount = 0;
-
-    projectCards.forEach(function (card) {
-        const cardText = card.textContent.toLowerCase();
-
-        if (cardText.includes(searchText)) {
-            card.style.display = "";
-            visibleCount++;
-        } else {
-            card.style.display = "none";
-        }
-    });
-
-    // Show the empty message only when no project matches
-    noProjectsMessage.hidden = visibleCount > 0;
-});
+/* =========================================================
+   11. START THE APP
+   The script is loaded with "defer", so the HTML is ready here.
+   ========================================================= */
+initTheme();
+initVisitor();
+initSectionToggles();
+initProjects();
