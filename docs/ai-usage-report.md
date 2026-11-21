@@ -1,62 +1,85 @@
- 
-
-# AI Usage Report – Assignment 2
+# AI Usage Report – Assignment 3
 
 ## 1. Tools Used
 
 | Tool | How I used it |
 |---|---|
-| **Claude (Opus 5.5)** – claude.ai | Understanding the Assignment 2 requirements, planning the features, step-by-step guidance for Git (branches, commits, merging), suggesting code for the live project search and contact form validation, CSS for messages and animation, testing advice, and help drafting documentation. |
-| **ChatGPT ([ChatGPT GPT-5])** | Clarifying the assignment requirements and steps to get started; explaining project search and contact form validation step by step; explaining the difference between the AI usage report and evidence ZIP; and helping draft and revise this report. |
+| **Claude (Opus 5.5)** – claude.ai | Checking the Assignment 3 requirements against my Assignment 2 code, planning the features, generating and explaining code (GitHub API, project filters and sorting, contact form rules, saved state, timer), compressing the images, testing the site in a browser, finding and fixing bugs, running Lighthouse, and drafting the documentation. |
 
 ## 2. Usage Log
 
-The Claude rows below describe artifacts from one Claude conversation. ChatGPT was used in a separate conversation on 2026-10-19.
+All rows come from one Claude conversation on 2026-11-21.
 
-| # | Tool | Date | Purpose | Files affected | What I changed and how I verified it |
-|---|---|---|---|---|---|
-| 1 | Claude (Opus 5.5) | 2026-10-18 | Break the assignment into requirements and pick features (live search + form validation) | None (planning only) | I chose which options to implement and followed the plan one step at a time. |
-| 2 | Claude (Opus 5.5) | 2026-10-18 | Git commands to start Assignment 2 from my Assignment 1 repo, and to use feature branches | Whole repository | I created the new public repo on GitHub myself, ran the commands in the VS Code terminal, and checked the result on GitHub. |
-| 3 | Claude (Opus 5.5) | 2026-10-18 | Live search: search input + “No projects found” message (HTML), search box style (CSS), filtering logic (JS) | `index.html`, `css/styles.css`, `js/script.js` | I placed the code inside my own Projects section. My first paste went inside the `<h2>` tag, so I moved `</h2>` back to the right place. I tested with “tuwaiq”, “xyz” and an empty search. |
-| 4 | Claude (Opus 5.5) | 2026-10-18 | Contact form validation: `novalidate`, an error `<p>` under each field (HTML), and the validation JS | `index.html`, `js/script.js` | I removed my old `showFormMessage()` function and the `onsubmit` attribute from Assignment 1 and replaced them with the new code. I tested an empty form, an invalid email (“abc”), and a valid form with a test name. |
-| 5 | Claude (Opus 5.5) | 2026-10-18 | Colors for error/success messages and the fade-in animation | `css/styles.css` | I kept the colors consistent with my existing dark plum and pink theme and checked the result in Safari. |
-| 6 | Claude (Opus 5.5) | 2026-10-18 | Pointed out typos and the old “Assignment 1” footer | `index.html` | I fixed the typos (“usefu”, “mpre”, “with and”) and updated the footer myself. |
-| 7 | Claude (Opus 5.5) | 2026-10-19 | First drafts of the README, this report, and the technical documentation | `README.md`, `docs/ai-usage-report.md`, `docs/technical-documentation.md` | I reviewed the drafts, checked that they match what I actually built, and edited the wording. |
-| 8 | Claude (Opus 5.5) | 2026-10-19 | Asked how to test that my site works well on mobile | None (testing advice only) | I tested the site myself using Safari Responsive Design Mode and checked the layout on a phone screen size. |
-| 9 | Claude (Opus 5.5) | 2026-10-19 | Make correct form fields show a green border, using my existing validation code | `js/script.js`, `css/styles.css` | I added the `input-valid` class to my existing `showError()` / `clearError()` functions, removed the green borders after a successful submit, and used the same green as my success message (`#4ADE80`). I tested a correct name with a wrong email and an empty message. |
-| 10 | ChatGPT ([ChatGPT model]) | 2026-10-17| Understand the assignment requirements and starting steps; learn how to add a search button and validate name, email, and message fields; understand the report versus evidence ZIP; revise the AI usage report | Draft text for `docs/ai-usage-report.md`; no project files were edited in this conversation | I used ChatGPT’s explanations to draft and revise this report. ChatGPT also created informal, step-by-step examples based on my supplied HTML. I checked the explanations against that HTML;| 
+| # | Tool | Purpose | Files affected | What I changed and how I verified it |
+|---|---|---|---|---|
+| 1 | Claude (Opus 5.5) | Read my Assignment 2 repository and map each Assignment 3 requirement to a feature | None (planning) | I chose to keep my existing design and build on my Assignment 2 code instead of starting over. |
+| 2 | Claude (Opus 5.5) | Compress and resize the project images, fix the duplicated `<ul>`, add `defer`, `preconnect`, and lazy loading | `assets/images/`, `index.html` | I checked that both images still look right in the cards and compared the file sizes (687 KB → 36 KB). |
+| 3 | Claude (Opus 5.5) | Light/dark theme with CSS variables, visitor name, visit counter, and Hide/Show buttons, all saved in `localStorage` | `index.html`, `css/styles.css`, `js/script.js` | I tested the theme toggle, saving and changing my name, and hiding a section, then reloaded the page to check that each choice was remembered. |
+| 4 | Claude (Opus 5.5) | Project data array with category + level filters, search, and sorting | `index.html`, `css/styles.css`, `js/script.js` | I checked that my project descriptions and dates are correct, and tested several filter combinations, the empty message, and the Reset button. |
+| 5 | Claude (Opus 5.5) | GitHub REST API section with loading, error, retry, empty state, and caching | `index.html`, `css/styles.css`, `js/script.js` | I opened the site and checked that my real repositories appear. I tested the error message by turning off my internet connection and clicking **Try again** after turning it back on. |
+| 6 | Claude (Opus 5.5) | Contact form rules, reason field with the extra project link field, character counter, disabled Send button | `index.html`, `css/styles.css`, `js/script.js` | I tested an empty form, a wrong email, a short message, a wrong project link, and a fully valid form. |
+| 7 | Claude (Opus 5.5) | Time-on-site timer in the footer | `index.html`, `css/styles.css`, `js/script.js` | I watched the timer count and reloaded the page to check that it continues. |
+| 8 | Claude (Opus 5.5) | Automated browser tests, debugging, and Lighthouse | Fixes in `css/styles.css`, `js/script.js`, `index.html` | Claude found the bugs listed in section 8 of the technical documentation (hidden form still showing, Arabic name order, favicon 404). I read each fix to understand the cause, and ran Lighthouse myself in Chrome DevTools to confirm the scores. |
+| 9 | Claude (Opus 5.5) | First drafts of the README, the technical documentation, and this report | `README.md`, `docs/` | I read the drafts, checked that they match what the site actually does, and edited the wording. |
 
-**AI-assisted commits** (made before I added the `Assisted-by` line to my commit messages):
-
-- `5bdbb76` – Add live search to filter projects
-- `5283e39` – Add contact form validation with animated error and success messages
-- `09f2758` – Fix typos and update footer to Assignment 2
-
-The commits listed above were assisted by Claude (Opus 5.5). Later commits containing Claude-assisted code include `Assisted-by: Claude (Opus 5.5)` in the commit message. If I use ChatGPT-generated code in a commit, I will credit ChatGPT in that commit message too.
+**AI-assisted commits:** every commit after the first one
+(`Start Assignment 3 from Assignment 2 portfolio`) contains Claude-assisted
+work, and each one has an `Assisted-by: Claude (Opus 5.5)` line in the commit
+message.
 
 ## 3. Benefits & Challenges
 
-**Benefits:** Working step by step with AI helped me understand how each part connects: the HTML element, the CSS class, and the JavaScript that reads it by its `id`. It also helped me learn a cleaner Git workflow with feature branches and merging.
+**Benefits:**
 
-**Challenges:** Pasting code in the wrong place broke the HTML structure once (inside the `<h2>`). I learned to check where an element opens and closes before pasting. I also had to understand why the old `onsubmit` code had to be removed, and not just add new code on top of it.
+- Claude explained *why* each piece is written the way it is (for example, why
+  the theme script must run in `<head>`, or why the API is called only when the
+  section is visible), which helped me understand the code and not just copy it.
+- Automated browser tests found bugs I would not have noticed easily, such as
+  the `hidden` attribute being overridden by `display: flex`.
+- Lighthouse showed clearly how much the image compression helped
+  (Performance 82 → 100).
+
+**Challenges:**
+
+- The amount of new code was large, so I had to read it section by section
+  (the script is split into 11 numbered sections to make this easier).
+- The GitHub API could not be reached from Claude's test environment, so the
+  API responses were simulated in the tests. I had to check the real API
+  myself in my browser.
+- Some project details (dates, descriptions) had to be checked by me, because
+  the AI could not know them.
 
 ## 4. Learning Outcomes
 
-- Using `addEventListener` for the `input` and `submit` events
-- Filtering elements with `querySelectorAll`, `forEach` and `includes`
-- Validating form input with `trim()`, `if / else` and a simple email pattern
-- Using `event.preventDefault()` to stop the page from reloading
-- Showing and hiding messages with the `hidden` attribute and the `:empty` selector
-- Simple CSS animation with `@keyframes`
-- Git branches: `checkout -b`, `merge`, `push`
+- Calling a REST API with `fetch`, `async/await`, `try/catch/finally`, and
+  running two requests together with `Promise.all`
+- Cancelling a slow request with `AbortController`, and reading the HTTP status
+- Turning technical errors into messages visitors understand
+- Protecting the page from HTML injection with `escapeHTML()`
+- Combining several conditions in `filter()`, sorting a copy with `sort()`, and
+  drawing the result with `map()` + template literals
+- Saving and restoring state with `localStorage` / `sessionStorage` and `JSON`
+- CSS variables for theming, and `prefers-color-scheme` / `prefers-reduced-motion`
+- `IntersectionObserver`, `debounce`, `setInterval`, and custom events
+- Image optimization (WebP, `srcset`, lazy loading) and measuring with Lighthouse
+- Git feature branches and `--no-ff` merges for each feature
 
 ## 5. Responsible Use & Modifications
 
-I did not copy code without understanding it. Before adding each part, I made sure I could explain what every line does. I placed the code inside my existing Assignment 1 structure, kept my own design and colors, removed old code that the new features replaced, and tested every feature myself in the browser.
+I did not submit code I cannot explain. I reviewed each section of
+`js/script.js`, `css/styles.css`, and `index.html`, checked that the content
+about me and my projects is accurate, and tested every feature in my own
+browser, including the live GitHub API. The design (colors, fonts, layout) is
+my own from Assignments 1 and 2. No personal data is sent anywhere: the visitor
+name and settings stay in the visitor's own browser.
 
-I have included the complete, unedited conversations with Claude and ChatGPT, along with the relevant original AI outputs before my edits, in the AI Evidence ZIP submitted on Blackboard, as required.
+The complete, unedited Claude conversation and the original AI outputs are
+included in the AI Evidence ZIP submitted on Blackboard, as required.
+
 ## 6. Declaration
 
-> I, RAZAN ALMUBARAK ,ID [202354910], declare that this report and the attached evidence document all of my AI use in this assignment, with complete and unedited conversations, and that I understand and can explain all the code I submitted. I understand that undeclared AI use or a false declaration will be treated as plagiarism according to KFUPM regulations.
-
-````
+> I, Razan Almubarak, ID 202354910, declare that this report and the attached
+> evidence document all of my AI use in this assignment, with complete and
+> unedited conversations, and that I understand and can explain all the code I
+> submitted. I understand that undeclared AI use or a false declaration will be
+> treated as plagiarism according to KFUPM regulations.

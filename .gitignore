@@ -8,3 +8,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Node modules (if tools like Lighthouse are installed locally)
+node_modules/
+
+# AI evidence ZIP (submitted on Blackboard, not in the repository)
+*-ai-evidence.zip
