@@ -22,10 +22,15 @@ All rows come from one Claude conversation on 2026-11-21.
 | 8 | Claude (Opus 5.5) | Automated browser tests, debugging, and Lighthouse | Fixes in `css/styles.css`, `js/script.js`, `index.html` | Claude found the bugs listed in section 8 of the technical documentation (hidden form still showing, Arabic name order, favicon 404). I read each fix to understand the cause, and ran Lighthouse myself in Chrome DevTools to confirm the scores. |
 | 9 | Claude (Opus 5.5) | First drafts of the README, the technical documentation, and this report | `README.md`, `docs/` | I read the drafts, checked that they match what the site actually does, and edited the wording. |
 
-**AI-assisted commits:** every commit after the first one
-(`Start Assignment 3 from Assignment 2 portfolio`) contains Claude-assisted
-work, and each one has an `Assisted-by: Claude (Opus 5.5)` line in the commit
-message.
+**AI-assisted commits:** the commits below were made with Claude's help.
+The first commit (`Start Assignment 3 from Assignment 2 portfolio`) only
+copied my Assignment 2 files.
+
+- Compress project images and improve page loading
+- Add saved light/dark theme, visitor name and section toggles
+- Improve contact form with step-by-step checks and a reason field
+- Add a time-on-site timer to the footer
+- Serve smaller images with srcset and tidy the HTML head
 
 ## 3. Benefits & Challenges
 
