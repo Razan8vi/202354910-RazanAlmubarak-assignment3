@@ -904,7 +904,7 @@ function handleContactSubmit(event) {
         // Step 3: confirm and clear the form
         submitButton.textContent = "Send Message";
         resetContactForm();
-        formMessage.textContent = `Thank you, ${name}! Your message about ${reasonLabel} has been received. I will reply to ${email}.`;
+        formMessage.textContent = `Thank you, \u2068${name}\u2069! Your message about ${reasonLabel} has been received. I will reply to ${email}.`;
     }, 1000);
 }
 
@@ -943,6 +943,48 @@ function initContactForm() {
 }
 
 /* =========================================================
+   10. TIME-ON-SITE TIMER
+   The start time is saved in sessionStorage, so reloading the
+   page keeps counting. A new tab or browser session starts at 0.
+   ========================================================= */
+const timeOnSite = document.getElementById("time-on-site");
+
+// 75 -> "01:15", 3725 -> "1:02:05"
+function formatDuration(totalSeconds) {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (number) => String(number).padStart(2, "0");
+
+    return hours > 0
+        ? `${hours}:${pad(minutes)}:${pad(seconds)}`
+        : `${pad(minutes)}:${pad(seconds)}`;
+}
+
+function initTimer() {
+    let startTime = readStorage(sessionStorage, STORAGE_KEYS.sessionStart, null);
+
+    if (!startTime) {
+        startTime = Date.now();
+        writeStorage(sessionStorage, STORAGE_KEYS.sessionStart, startTime);
+    }
+
+    const updateTimer = () => {
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        timeOnSite.textContent = formatDuration(elapsedSeconds);
+    };
+
+    updateTimer();
+
+    // Skip the work while the tab is in the background
+    setInterval(() => {
+        if (!document.hidden) {
+            updateTimer();
+        }
+    }, 1000);
+}
+
+/* =========================================================
    11. START THE APP
    The script is loaded with "defer", so the HTML is ready here.
    ========================================================= */
@@ -952,3 +994,4 @@ initSectionToggles();
 initProjects();
 initGitHub();
 initContactForm();
+initTimer();

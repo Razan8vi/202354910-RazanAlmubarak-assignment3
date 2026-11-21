@@ -384,6 +384,17 @@ main {
     font-size: 14px;
 }
 
+/* Time-on-site timer in the footer */
+.timer {
+    margin-top: 6px;
+}
+
+#time-on-site {
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    font-weight: 600;
+}
+
 /* =========================================================
    8. PROJECTS: FILTERS, SORTING AND CARDS
    ========================================================= */
