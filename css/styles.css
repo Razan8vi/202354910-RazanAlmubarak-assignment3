@@ -674,33 +674,64 @@ main {
 }
 
 /* =========================================================
-   Contact form (from Assignment 2)
+   10. CONTACT FORM
    ========================================================= */
 .contact-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    max-width: 500px;
+    gap: 16px;
+    max-width: 520px;
 }
 
-.contact-form input,
-.contact-form textarea {
-    padding: 12px;
-    border: 1px solid var(--border-strong);
-    border-radius: 6px;
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: inherit;
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.contact-form input.input-error,
-.contact-form textarea.input-error {
-    border-color: var(--error);
-}
-
-.form-message.success {
-    color: var(--success);
+.form-group label {
     font-weight: 600;
+    color: var(--text-soft);
+    font-size: 14px;
+}
+
+.optional {
+    font-weight: 400;
+    color: var(--text-faint);
+}
+
+.reason-note {
+    color: var(--accent-2);
+    font-size: 13px;
+    animation: fadeIn 0.3s ease;
+}
+
+.reason-note:empty {
+    display: none;
+}
+
+.char-count {
+    align-self: flex-end;
+    color: var(--text-faint);
+    font-size: 12px;
+}
+
+.char-count.near-limit {
+    color: var(--error);
+    font-weight: 600;
+}
+
+.contact-form .btn-primary {
+    align-self: flex-start;
+}
+
+.form-hint {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.form-hint:empty {
+    display: none;
 }
 
 /* =========================================================

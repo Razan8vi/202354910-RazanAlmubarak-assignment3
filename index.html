@@ -202,49 +202,93 @@
             </div>
         </section>
 
-        <section id="contact" class="section">
-            <h2>Contact Me</h2>
-            <form
-    id="contact-form"
-    class="contact-form"
-    novalidate
->
-    <label for="name">Name:</label>
-    <input
-        type="text"
-        id="name"
-        name="name"
-        placeholder="Your name"
-        required
+        <section id="contact" class="section" aria-labelledby="contact-title">
+            <div class="section-header">
+                <h2 id="contact-title">Contact Me</h2>
+            </div>
 
-    >
-        <p id="name-error" class="error-message"></p>
+            <!-- novalidate: JavaScript shows its own clear error messages -->
+            <form id="contact-form" class="contact-form" novalidate>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        class="field"
+                        maxlength="50"
+                        autocomplete="name"
+                        placeholder="Your name"
+                        aria-describedby="name-error"
+                        required
+                    >
+                    <p id="name-error" class="error-message" aria-live="polite"></p>
+                </div>
 
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="field"
+                        maxlength="100"
+                        autocomplete="email"
+                        placeholder="your.email@example.com"
+                        aria-describedby="email-error"
+                        required
+                    >
+                    <p id="email-error" class="error-message" aria-live="polite"></p>
+                </div>
 
-    <label for="email">Email:</label>
-    <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="your.email@example.com"
-        required
-    >
-        <p id="email-error" class="error-message"></p>
+                <div class="form-group">
+                    <label for="reason">Reason for contacting me</label>
+                    <select id="reason" name="reason" class="field" aria-describedby="reason-error reason-note" required>
+                        <option value="">Choose a reason&hellip;</option>
+                        <option value="job">Job or internship opportunity</option>
+                        <option value="collaboration">Project collaboration</option>
+                        <option value="feedback">Feedback on my portfolio</option>
+                        <option value="hello">Just saying hi</option>
+                    </select>
+                    <p id="reason-error" class="error-message" aria-live="polite"></p>
+                    <!-- Changes depending on the chosen reason -->
+                    <p id="reason-note" class="reason-note" aria-live="polite"></p>
+                </div>
 
-    <label for="message">Message:</label>
-    <textarea
-        id="message"
-        name="message"
-        rows="5"
-        placeholder="Write your message here..."
-        required
-    ></textarea>
-        <p id="message-error" class="error-message"></p>
+                <!-- Only shown when the reason is "Project collaboration" -->
+                <div id="project-link-group" class="form-group" hidden>
+                    <label for="project-link">Project link <span class="optional">(optional)</span></label>
+                    <input
+                        type="url"
+                        id="project-link"
+                        name="project-link"
+                        class="field"
+                        placeholder="https://github.com/your-project"
+                        aria-describedby="project-link-error"
+                    >
+                    <p id="project-link-error" class="error-message" aria-live="polite"></p>
+                </div>
 
-    <button type="submit">Send Message</button>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea
+                        id="message"
+                        name="message"
+                        class="field"
+                        rows="5"
+                        maxlength="500"
+                        placeholder="Write your message here..."
+                        aria-describedby="message-error char-count"
+                        required
+                    ></textarea>
+                    <p id="char-count" class="char-count">0 / 500</p>
+                    <p id="message-error" class="error-message" aria-live="polite"></p>
+                </div>
 
-    <p id="form-message" class="form-message"></p>
-</form>
+                <button id="submit-button" type="submit" class="btn-primary" disabled>Send Message</button>
+                <p id="form-hint" class="form-hint" aria-live="polite"></p>
+                <p id="form-message" class="success-message" role="status"></p>
+            </form>
         </section>
 
     </main>
