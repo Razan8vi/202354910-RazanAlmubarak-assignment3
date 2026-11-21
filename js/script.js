@@ -284,7 +284,7 @@ const PROJECTS = [
         level: "intermediate",
         date: "2025-08",
         tags: ["Front-end", "Arabic / English", "Tuwaiq Academy"],
-        image: { src: "assets/images/byto-app.webp", alt: "BYTO app language selection screen", width: 640, height: 480 }
+        image: { src: "assets/images/byto-app.webp", small: "assets/images/byto-app-400.webp", alt: "BYTO app language selection screen", width: 640, height: 480 }
     },
     {
         title: "Personal Portfolio Website",
@@ -293,7 +293,7 @@ const PROJECTS = [
         level: "beginner",
         date: "2026-09",
         tags: ["HTML", "CSS", "JavaScript"],
-        image: { src: "assets/images/portfolio-a1.webp", alt: "Screenshot of my Assignment 1 portfolio website", width: 800, height: 450 },
+        image: { src: "assets/images/portfolio-a1.webp", small: "assets/images/portfolio-a1-400.webp", alt: "Screenshot of my Assignment 1 portfolio website", width: 800, height: 450 },
         link: "https://github.com/Razan8vi/202354910-razan-almubarak-assignment1"
     },
     {
@@ -399,8 +399,12 @@ function sortProjects(projects, sortBy) {
 }
 
 function createProjectCard(project) {
+    // srcset lets the browser pick the small (400 px) or large image for the card size
     const image = project.image
-        ? `<img src="${project.image.src}" alt="${escapeHTML(project.image.alt)}" class="project-img"
+        ? `<img src="${project.image.src}"
+                srcset="${project.image.small} 400w, ${project.image.src} ${project.image.width}w"
+                sizes="(max-width: 600px) 90vw, 280px"
+                alt="${escapeHTML(project.image.alt)}" class="project-img"
                 width="${project.image.width}" height="${project.image.height}" loading="lazy">`
         : `<div class="project-img project-img-placeholder" aria-hidden="true">${escapeHTML(project.title.charAt(0))}</div>`;
 
