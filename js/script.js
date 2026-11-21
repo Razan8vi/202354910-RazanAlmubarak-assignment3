@@ -179,8 +179,11 @@ function countVisit() {
 }
 
 function renderGreeting() {
-    const { name, visits } = visitorState;
+    const { visits } = visitorState;
     const timeOfDay = getTimeOfDay();
+
+    // Isolate the name so Arabic (right-to-left) names display correctly in English text
+    const name = visitorState.name ? `\u2068${visitorState.name}\u2069` : "";
 
     if (name && visits > 1) {
         greetingElement.textContent = `${timeOfDay}, ${name}! Welcome back. This is visit number ${visits}.`;
@@ -423,13 +426,13 @@ function createProjectCard(project) {
         </li>`;
 }
 
-// Builds a specific hint, e.g. "No advanced mobile projects match "abc"."
+// Builds a specific hint, e.g. "No beginner Mobile projects yet."
 function getEmptyMessage({ category, level, search }) {
     const levelText = level === "all" ? "" : `${LEVEL_LABELS[level].toLowerCase()} `;
     const categoryText = category === "all" ? "" : `${CATEGORY_LABELS[category]} `;
-    const searchText = search ? ` matching "${search}"` : "";
+    const ending = search ? ` match "${search}"` : " yet";
 
-    return `No ${levelText}${categoryText}projects${searchText} yet. Try another level or category, or reset the filters.`;
+    return `No ${levelText}${categoryText}projects${ending}. Try another level or category, or reset the filters.`;
 }
 
 function renderProjects() {
@@ -496,6 +499,217 @@ function initProjects() {
     });
 
     renderProjects();
+}
+
+/* =========================================================
+   8. GITHUB REPOSITORIES (EXTERNAL API)
+   Uses the public GitHub REST API (no key needed):
+   - GET /users/{username}        -> profile
+   - GET /users/{username}/repos  -> repositories
+   The data is loaded only when the section scrolls into view,
+   and it is cached in sessionStorage for 10 minutes to stay
+   fast and to respect GitHub's limit of 60 requests per hour.
+   ========================================================= */
+const GITHUB_API = "https://api.github.com";
+const REQUEST_TIMEOUT_MS = 8000;
+const MAX_REPOS = 6;
+
+const githubBody = document.getElementById("github-body");
+const githubProfile = document.getElementById("github-profile");
+const githubStatus = document.getElementById("github-status");
+const githubRepos = document.getElementById("github-repos");
+const githubRetryButton = document.getElementById("github-retry");
+
+// Fetch JSON with a time limit; throws an Error with extra details if it fails
+async function fetchJSON(url) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    try {
+        const response = await fetch(url, { signal: controller.signal });
+
+        if (!response.ok) {
+            const error = new Error(`GitHub responded with status ${response.status}`);
+            error.status = response.status;
+            error.rateLimited = response.headers.get("x-ratelimit-remaining") === "0";
+            throw error;
+        }
+        return await response.json();
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
+// Turn any error into a short message a visitor can understand
+function getFriendlyErrorMessage(error) {
+    if (!navigator.onLine) {
+        return "You seem to be offline. Check your internet connection and try again.";
+    }
+    if (error.name === "AbortError") {
+        return "GitHub is taking too long to respond. Please try again.";
+    }
+    if (error.rateLimited || error.status === 403 || error.status === 429) {
+        return "GitHub's hourly request limit was reached. Please try again in a few minutes.";
+    }
+    if (error.status === 404) {
+        return "The GitHub profile could not be found.";
+    }
+    return "Sorry, my GitHub projects could not be loaded right now. Please try again later.";
+}
+
+// "2026-11-02T10:00:00Z" -> "3 weeks ago"
+function timeAgo(isoDate) {
+    const seconds = Math.round((new Date(isoDate) - Date.now()) / 1000);
+    const units = [
+        ["year", 31536000],
+        ["month", 2592000],
+        ["week", 604800],
+        ["day", 86400],
+        ["hour", 3600],
+        ["minute", 60]
+    ];
+    const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+    for (const [unit, unitSeconds] of units) {
+        if (Math.abs(seconds) >= unitSeconds) {
+            return formatter.format(Math.round(seconds / unitSeconds), unit);
+        }
+    }
+    return "just now";
+}
+
+// Keep my own repositories (no forks), newest activity first
+function prepareRepos(repos) {
+    return repos
+        .filter((repo) => !repo.fork)
+        .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at))
+        .slice(0, MAX_REPOS)
+        .map((repo) => ({
+            name: repo.name,
+            url: repo.html_url,
+            description: repo.description,
+            language: repo.language,
+            stars: repo.stargazers_count,
+            pushedAt: repo.pushed_at
+        }));
+}
+
+// Use the cached copy when it is younger than GITHUB_CACHE_MINUTES
+function readGitHubCache() {
+    const cache = readStorage(sessionStorage, STORAGE_KEYS.githubCache, null);
+    const maxAge = GITHUB_CACHE_MINUTES * 60 * 1000;
+
+    if (cache && Date.now() - cache.savedAt < maxAge) {
+        return cache;
+    }
+    return null;
+}
+
+function renderGitHubLoading() {
+    githubRetryButton.hidden = true;
+    githubStatus.className = "api-status";
+    githubStatus.textContent = "Loading my latest repositories from GitHub…";
+    githubRepos.setAttribute("aria-busy", "true");
+    githubRepos.innerHTML = '<li class="repo-card skeleton"></li>'.repeat(3);
+}
+
+function renderGitHubError(error) {
+    githubProfile.innerHTML = "";
+    githubRepos.innerHTML = "";
+    githubRepos.removeAttribute("aria-busy");
+    githubStatus.className = "api-status api-error";
+    githubStatus.textContent = getFriendlyErrorMessage(error);
+    githubRetryButton.hidden = false;
+}
+
+function renderGitHubData({ profile, repos }) {
+    githubRepos.removeAttribute("aria-busy");
+    githubStatus.className = "api-status";
+
+    githubProfile.innerHTML = `
+        <img src="${escapeHTML(profile.avatarUrl)}" alt="" width="56" height="56" loading="lazy">
+        <div>
+            <p class="profile-name">${escapeHTML(profile.name)}</p>
+            <p class="profile-stats">${profile.publicRepos} public repositories · ${profile.followers} followers</p>
+        </div>
+        <a class="btn-pill" href="${escapeHTML(profile.url)}" target="_blank" rel="noopener">View profile<span class="visually-hidden"> on GitHub (opens in a new tab)</span></a>`;
+
+    if (repos.length === 0) {
+        githubRepos.innerHTML = "";
+        githubStatus.textContent = "No public repositories yet. New projects will appear here automatically.";
+        return;
+    }
+
+    githubStatus.textContent = `Showing my ${repos.length} most recently updated repositories.`;
+    githubRepos.innerHTML = repos.map((repo) => `
+        <li class="repo-card">
+            <a class="repo-name" href="${escapeHTML(repo.url)}" target="_blank" rel="noopener">
+                ${escapeHTML(repo.name)}<span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+            <p class="repo-description">${escapeHTML(repo.description || "No description yet.")}</p>
+            <p class="repo-meta">
+                ${repo.language ? `<span class="repo-language">${escapeHTML(repo.language)}</span>` : ""}
+                <span aria-label="${repo.stars} stars">★ ${repo.stars}</span>
+                <span>Updated ${timeAgo(repo.pushedAt)}</span>
+            </p>
+        </li>`).join("");
+}
+
+async function loadGitHubData() {
+    const cached = readGitHubCache();
+    if (cached) {
+        renderGitHubData(cached);
+        return;
+    }
+
+    renderGitHubLoading();
+
+    try {
+        // Both requests run at the same time
+        const [profileData, reposData] = await Promise.all([
+            fetchJSON(`${GITHUB_API}/users/${GITHUB_USERNAME}`),
+            fetchJSON(`${GITHUB_API}/users/${GITHUB_USERNAME}/repos?per_page=100`)
+        ]);
+
+        const data = {
+            savedAt: Date.now(),
+            profile: {
+                name: profileData.name || profileData.login,
+                avatarUrl: profileData.avatar_url,
+                url: profileData.html_url,
+                publicRepos: profileData.public_repos,
+                followers: profileData.followers
+            },
+            repos: prepareRepos(reposData)
+        };
+
+        writeStorage(sessionStorage, STORAGE_KEYS.githubCache, data);
+        renderGitHubData(data);
+    } catch (error) {
+        console.warn("GitHub API request failed:", error);
+        renderGitHubError(error);
+    }
+}
+
+function initGitHub() {
+    githubRetryButton.addEventListener("click", loadGitHubData);
+
+    // Older browsers without IntersectionObserver just load right away
+    if (!("IntersectionObserver" in window)) {
+        loadGitHubData();
+        return;
+    }
+
+    // Load once, when the section is close to the screen. A hidden
+    // section is never "visible", so it loads after the visitor shows it.
+    const observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+            observer.disconnect();
+            loadGitHubData();
+        }
+    }, { rootMargin: "200px" });
+
+    observer.observe(githubBody);
 }
 
 /* =========================================================
@@ -571,3 +785,4 @@ initTheme();
 initVisitor();
 initSectionToggles();
 initProjects();
+initGitHub();
